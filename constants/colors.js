@@ -30,6 +30,7 @@ const midnightTheme = {
   textLight: "#7F8C8D",
   card: "#FFFFFF",
   shadow: "#000000",
+  background: "#F0F4F8",
 };
 
 export const THEMES = {

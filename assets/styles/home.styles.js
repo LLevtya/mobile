@@ -5,6 +5,49 @@ const { width } = Dimensions.get("window");
 const cardWidth = (width - 48) / 2;
 
 export const homeStyles = StyleSheet.create({
+  header: {
+  marginBottom: 40,
+  paddingHorizontal: 19,
+},
+
+greetingText: {
+  fontSize: 32,
+  fontWeight: '700',
+  color: '#1c1c1e',
+  marginBottom: 12,
+  marginTop: 25,
+  marginLeft: 20,
+  marginRight: 20,
+},
+
+quoteBox: {
+  backgroundColor: "#FAFAFA",
+  borderRadius: 10,
+  paddingVertical: 15,
+  paddingHorizontal: 20, 
+  marginHorizontal: 0, 
+  marginTop: 16,
+  marginLeft: 16,
+  marginRight: 16,
+  marginBottom: 14,
+  borderLeftWidth: 3,
+  borderLeftColor: "#0004FF", // soft blue accent
+},
+quoteText: {
+  fontSize: 14,
+  fontStyle: "italic",
+  color: "#555",
+  marginBottom: 9,
+  textAlign: "left",
+},
+quoteAuthor: {
+  fontSize: 12,
+  color: "#999",
+  textAlign: "right",
+},
+
+
+
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
@@ -27,8 +70,10 @@ export const homeStyles = StyleSheet.create({
     letterSpacing: -0.5,
   },
   featuredSection: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 13,
     marginBottom: 24,
+    marginLeft: 16,
+  marginRight: 16,
   },
   featuredCard: {
     borderRadius: 24,
@@ -96,7 +141,7 @@ export const homeStyles = StyleSheet.create({
     color: COLORS.white,
     fontWeight: "600",
   },
-  recipesSection: {
+  contentSection: {
     paddingHorizontal: 16,
     marginTop: 8,
   },
@@ -109,7 +154,7 @@ export const homeStyles = StyleSheet.create({
     color: COLORS.text,
     letterSpacing: -0.5,
   },
-  recipesGrid: {
+  contentGrid: {
     gap: 16,
   },
   row: {
@@ -134,37 +179,56 @@ export const homeStyles = StyleSheet.create({
     textAlign: "center",
   },
   categoryFilterContainer: {
-    marginVertical: 16,
+    marginVertical: 2,
+    marginBottom: 2,
   },
   categoryFilterScrollContent: {
     paddingHorizontal: 16,
     gap: 12,
   },
+  categoryContainer: {
+  flexDirection: "row",
+  paddingHorizontal: 16,
+  
+  borderRadius: 4,
+  marginVertical: 4,
+  // Add shadow for subtle elevation on iOS and Android
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 1 },
+  shadowOpacity: 0.1,
+  shadowRadius: 2,
+  elevation: 2,
+},
   categoryButton: {
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: COLORS.card,
-    paddingVertical: 12,
+    paddingVertical: 13,
     paddingHorizontal: 16,
-    borderRadius: 20,
+    marginRight: 16,
+    marginBottom: 8,
+    marginTop: 8,
+    borderRadius: 15,
     borderWidth: 1,
     borderColor: COLORS.border,
-    minWidth: 80,
+    minWidth: 60,
     shadowColor: COLORS.shadow,
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 1,
     },
     shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowRadius: 2,
+    elevation: 1,
   },
   selectedCategory: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-    shadowOpacity: 0.15,
+    backgroundColor: '#0004FF',  // iOS system blue
+  borderColor: '#007AFF',
   },
+  selectedCategoryText: {
+  color: '#fff',
+},
   categoryImage: {
     width: 40,
     height: 40,
@@ -177,8 +241,8 @@ export const homeStyles = StyleSheet.create({
     borderColor: COLORS.white,
   },
   categoryText: {
-    fontSize: 12,
-    fontWeight: "600",
+    fontSize: 15,
+    fontWeight: "500",
     color: COLORS.text,
     textAlign: "center",
   },
@@ -187,7 +251,7 @@ export const homeStyles = StyleSheet.create({
   },
 });
 
-export const recipeCardStyles = StyleSheet.create({
+export const contentCardStyles = StyleSheet.create({
   container: {
     width: cardWidth,
     backgroundColor: COLORS.card,
@@ -213,7 +277,7 @@ export const recipeCardStyles = StyleSheet.create({
     backgroundColor: COLORS.border,
   },
   content: {
-    padding: 12,
+    padding: 10,
   },
   title: {
     fontSize: 15,

@@ -1,6 +1,4 @@
-import { useSignIn } from "@clerk/clerk-expo";
 import { useRouter } from "expo-router";
-import { useState } from "react";
 import {
   View,
   Text,
@@ -11,12 +9,8 @@ import {
   TextInput,
   TouchableOpacity,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-
 import { Image } from "expo-image";
-
 import { authStyles } from "../../assets/styles/auth.styles";
-import { COLORS } from "../../constants/colors";
 
 export default function GetStarted() {
   const router = useRouter();
@@ -32,7 +26,7 @@ export default function GetStarted() {
 
       <View style={authStyles.buttonContainer}>
         <TouchableOpacity
-          style={[authStyles.authButtonMain]}
+          style={[authStyles.authButton]}
           onPress={() => router.push("/(auth)/start-imgs")}
         >
           <Text style={authStyles.buttonText}>Get Started</Text>

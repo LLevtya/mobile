@@ -1,5 +1,3 @@
-import { useSignIn } from "@clerk/clerk-expo";
-import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
   View,
@@ -7,61 +5,52 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
   ScrollView,
   TextInput,
   TouchableOpacity,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
-import { Image } from "expo-image";
+import { useAuthStore } from "../../store/authStore";
+import { useRouter } from "expo-router";
 
 import { authStyles } from "../../assets/styles/auth.styles";
 import { COLORS } from "../../constants/colors";
+import { useEffect } from "react";
 
-const SignInScreen = () => {
+
+export default function SignIn() {
   const router = useRouter();
-
-  const { signIn, setActive, isLoaded } = useSignIn();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const { isLoading, login, isCheckingAuth, user, token } = useAuthStore();
+  
 
   const handleSignIn = async () => {
-    if (!email || !password) {
-      Alert.alert("Error", "Please fill in all fields");
-      return;
-    }
+    const result = await login(email, password);
 
-    if (!isLoaded) return;
 
-    setLoading(true);
-
-    try {
-      const signInAttempt = await signIn.create({
-        identifier: email,
-        password,
-      });
-
-      if (signInAttempt.status === "complete") {
-        await setActive({ session: signInAttempt.createdSessionId });
-      } else {
-        Alert.alert("Error", "Sign in failed. Please try again.");
-        console.error(JSON.stringify(signInAttempt, null, 2));
-      }
-    } catch (err) {
-      Alert.alert("Error", err.errors?.[0]?.message || "Sign in failed");
-      console.error(JSON.stringify(err, null, 2));
-    } finally {
-      setLoading(false);
-    }
+    if (!result.success) Alert.alert("Error", result.error);
   };
 
+  useEffect(() => {
+    if (!isCheckingAuth && user && token) {
+      router.replace("/(tabs)");
+    }
+  }, [isCheckingAuth, user, token]);
+
+  if (isCheckingAuth) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+
   return (
-    
     <View style={authStyles.container}>
-        
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={authStyles.keyboardView}
@@ -71,7 +60,6 @@ const SignInScreen = () => {
           contentContainerStyle={authStyles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-
 
           <Text style={authStyles.title}>Welcome Back</Text>
 
@@ -114,12 +102,13 @@ const SignInScreen = () => {
             </View>
 
             <TouchableOpacity
-              style={[authStyles.authButton, loading && authStyles.buttonDisabled]}
+              style={[authStyles.authButton, isLoading && authStyles.buttonDisabled]}
               onPress={handleSignIn}
-              disabled={loading}
+              disabled={isLoading}
               activeOpacity={0.8}
+              
             >
-              <Text style={authStyles.buttonText}>{loading ? "Signing In..." : "Sign In"}</Text>
+              <Text style={authStyles.buttonText}>{isLoading ? "Signing In..." : "Sign In"}</Text>
             </TouchableOpacity>
 
             {/* Sign Up Link */}
@@ -137,4 +126,3 @@ const SignInScreen = () => {
     </View>
   );
 };
-export default SignInScreen;

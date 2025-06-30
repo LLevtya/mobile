@@ -1,40 +1,59 @@
-import { useAuth } from "@clerk/clerk-expo";
-import { Redirect, Tabs } from "expo-router";
+import { Tabs } from "expo-router";
+import { View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { authStyles } from "../../assets/styles/auth.styles";
 import { COLORS } from "../../constants/colors";
+import { useAuthStore } from "../../store/authStore";
+import { useRouter } from "expo-router";
+import React, { useEffect } from "react";
+import { ActivityIndicator } from "react-native";
 
-const TabsLayout = () => {
-  const { isSignedIn, isLoaded } = useAuth();
+export default function TabLayout() {
+  const insets = useSafeAreaInsets();
+  const { isCheckingAuth, user, token } = useAuthStore();
+  const router = useRouter();
 
-  if (!isLoaded) return null;
+  useEffect(() => {
+    if (!isCheckingAuth && (!user || !token)) {
+      router.replace("/(auth)/sign-in");
+    }
+  }, [isCheckingAuth, user, token]);
 
-  if (!isSignedIn) return <Redirect href={"/(auth)/get-started"} />;
+  if (isCheckingAuth) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: COLORS.textLight,
-        tabBarStyle: {
-          backgroundColor: COLORS.white,
-          borderTopColor: COLORS.border,
-          borderTopWidth: 1,
-          paddingBottom: 8,
-          paddingTop: 8,
-          height: 80,
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
+        headerTitleStyle: {
+          color: COLORS.primary,
           fontWeight: "600",
+        },
+        headerShadowVisible: false,
+        tabBarStyle: {
+          backgroundColor: COLORS.fontback,
+          borderTopWidth: 1,
+          borderTopColor: COLORS.border,
+          paddingTop: 5,
+          paddingBottom: insets.bottom,
+          height: 60 + insets.bottom,
         },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: "Recipes",
-          tabBarIcon: ({ color, size }) => <Ionicons name="restaurant" size={size} color={color} />,
+          title: "Home",
+          headerShown: false,
+          tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -45,13 +64,12 @@ const TabsLayout = () => {
         }}
       />
       <Tabs.Screen
-        name="favorites"
+        name="user"
         options={{
-          title: "Favorites",
-          tabBarIcon: ({ color, size }) => <Ionicons name="heart" size={size} color={color} />,
+          title: "User",
+          tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} />,
         }}
       />
     </Tabs>
   );
 };
-export default TabsLayout;

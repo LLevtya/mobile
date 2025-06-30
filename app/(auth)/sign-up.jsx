@@ -1,66 +1,50 @@
 import {
   View,
   Text,
-  Alert,
-  KeyboardAvoidingView,
   Platform,
-  ScrollView,
+  KeyboardAvoidingView,
   TextInput,
+  ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { useSignUp } from "@clerk/clerk-expo";
-import { useState } from "react";
 import { authStyles } from "../../assets/styles/auth.styles";
-import { Image } from "expo-image";
 import { COLORS } from "../../constants/colors";
-
 import { Ionicons } from "@expo/vector-icons";
-import VerifyEmail from "./verify-email";
+import { useState } from "react";
+import { useRouter } from "expo-router";
+import { useAuthStore } from "../../store/authStore";
 
-const SignUpScreen = () => {
-  const router = useRouter();
-  const { isLoaded, signUp } = useSignUp();
-  const [email, setEmail] = useState("");
+
+export default function Signup() {
+  const [username, setUsername] = useState("");
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [pendingVerification, setPendingVerification] = useState(false);
+
+  const { user, isLoading, register, token } = useAuthStore();
+
+  const router = useRouter();
 
   const handleSignUp = async () => {
-    if (!email || !password) return Alert.alert("Error", "Please fill in all fields");
-    if (password.length < 6) return Alert.alert("Error", "Password must be at least 6 characters");
+  const result = await register(name, username, email, password);
 
-    if (!isLoaded) return;
+  if (!result.success) {
+    Alert.alert("Error", result.error);
+    return;
+  }
 
-    setLoading(true);
-
-    try {
-      await signUp.create({ emailAddress: email, password });
-
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-
-      setPendingVerification(true);
-    } catch (err) {
-      Alert.alert("Error", err.errors?.[0]?.message || "Failed to create account");
-      console.error(JSON.stringify(err, null, 2));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (pendingVerification)
-    return <VerifyEmail email={email} onBack={() => setPendingVerification(false)} />;
+  // Navigate to email verification screen
+  router.push({
+    pathname: "/verify-email",
+    params: { email }, // pass email as param
+  });
+};
 
   return (
     <View style={authStyles.container}>
-      <Image
-        source={require("../../assets/images/SplashScreen2.png")}
-        style={authStyles.backgroundImage}
-        contentFit="cover"
-        transition={200}
-      />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
@@ -83,6 +67,18 @@ const SignUpScreen = () => {
                 placeholderTextColor={COLORS.textLight}
                 value={name}
                 onChangeText={setName}
+                autoCapitalize="none"
+              />
+            </View>
+
+            {/* Username Input */}
+            <View style={authStyles.inputContainer}>
+              <TextInput
+                style={authStyles.textInput}
+                placeholder="Enter your username"
+                placeholderTextColor={COLORS.textLight}
+                value={username}
+                onChangeText={setUsername}
                 autoCapitalize="none"
               />
             </View>
@@ -126,14 +122,14 @@ const SignUpScreen = () => {
 
             {/* Sign Up Button */}
             <TouchableOpacity
-              style={[authStyles.authButton, loading && authStyles.buttonDisabled]}
+              style={[authStyles.authButton, isLoading && authStyles.buttonDisabled]} 
               onPress={handleSignUp}
-              disabled={loading}
-              activeOpacity={0.8}
-            >
-              <Text style={authStyles.buttonText}>
-                {loading ? "Creating Account..." : "Sign Up"}
-              </Text>
+              disabled={isLoading}>
+              {isLoading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={authStyles.buttonText}>{isLoading ? "Creating account..." : "Sign Up"}</Text>
+              )}
             </TouchableOpacity>
 
             {/* Sign In Link */}
@@ -149,4 +145,3 @@ const SignUpScreen = () => {
     </View>
   );
 };
-export default SignUpScreen;

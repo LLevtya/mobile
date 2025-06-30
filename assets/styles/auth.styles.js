@@ -68,18 +68,18 @@ export const authStyles = StyleSheet.create({
     padding: 4,
   },
   authButton: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: COLORS.shadow,
     paddingVertical: 18,
     borderRadius: 12,
-    marginTop: 20,
-    marginBottom: 30,
+    marginTop: 10,
+    marginBottom: 25,
   },
   authButtonMain: {
     backgroundColor: COLORS.shadow,
     paddingVertical: 18,
     borderRadius: 12,
-    marginTop: 15,
-    marginBottom: 15,
+    marginTop: 0,
+    marginBottom: 40,
   },
   buttonContainer: {
   padding: 23,
