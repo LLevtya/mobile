@@ -25,17 +25,21 @@ export default function RootLayout() {
     prepare();
   }, []);
 
-  useEffect(() => {
+   useEffect(() => {
     if (!appReady) return;
 
-    const inAuthGroup = segments[0] === "(auth)";
     const isSignedIn = !!user && !!token;
 
-    if (!isSignedIn && !inAuthGroup) {
-      router.replace("/(auth)/sign-in");
-    } else if (isSignedIn && inAuthGroup) {
-      router.replace("/(tabs)");
-    }
+    const group = segments[0];       // (auth), (tabs)
+    const subRoute = segments[1];    // e.g., "verify-email"
+    const isInAuthGroup = group === "(auth)";
+    const isVerificationPage = isInAuthGroup && subRoute === "verify-email";
+
+    if (!isSignedIn && !isInAuthGroup) {
+  router.replace("/sign-in");
+} else if (isSignedIn && isInAuthGroup && user?.isVerified) {
+  router.replace("/(tabs)");
+}
 
     SplashScreen.hideAsync(); // <- hide splash when decision is made
   }, [appReady, user, token, segments]);

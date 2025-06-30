@@ -27,21 +27,31 @@ export default function Signup() {
   const { user, isLoading, register, token } = useAuthStore();
 
   const router = useRouter();
+  
+  const goToSignin = () => {
+  router.push("/sign-in");
+  }
 
-  const handleSignUp = async () => {
+ const handleSignUp = async () => {
   const result = await register(name, username, email, password);
+  console.log("Signup result:", result);
 
   if (!result.success) {
     Alert.alert("Error", result.error);
     return;
   }
 
-  // Navigate to email verification screen
-  router.push({
-    pathname: "/verify-email",
-    params: { email }, // pass email as param
-  });
+  const isVerified = result.user?.isVerified;
+  console.log("User isVerified:", isVerified);
+
+  if (!isVerified) {
+    router.push('/(auth)/verify-email');
+  } else {
+    router.push("/(auth)/index");
+  }
 };
+
+
 
   return (
     <View style={authStyles.container}>
@@ -133,9 +143,9 @@ export default function Signup() {
             </TouchableOpacity>
 
             {/* Sign In Link */}
-            <TouchableOpacity style={authStyles.linkContainer} onPress={() => router.push("/(auth)/sign-in")}>
+            <TouchableOpacity style={authStyles.linkContainer} onPress={goToSignin}>
               <Text style={authStyles.linkText}>
-                Already have an account? <Text style={authStyles.link}>Sign In</Text>
+                Back to <Text style={authStyles.link}>Sign In</Text>
               </Text>
             </TouchableOpacity>
           </View>

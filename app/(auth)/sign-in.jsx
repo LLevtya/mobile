@@ -31,8 +31,18 @@ export default function SignIn() {
     const result = await login(email, password);
 
 
-    if (!result.success) Alert.alert("Error", result.error);
-  };
+    if (result.success) {
+    router.replace("/(tabs)");
+  } else if (result.error === "UNVERIFIED") {
+    // 🚀 Redirect to verification screen with email passed as param
+    router.push({
+      pathname: "/verify-email",
+      params: { email: result.email },
+    });
+  } else {
+    Alert.alert("Login Failed", result.error);
+  }
+};
 
   useEffect(() => {
     if (!isCheckingAuth && user && token) {

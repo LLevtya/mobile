@@ -21,6 +21,18 @@ export const authStyles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 40,
   },
+  linkContainer: {
+    alignItems: "center",
+    marginTop: 10,
+  },
+  linkText: {
+    color: "#444",
+    fontSize: 14,
+  },
+  link: {
+    color: COLORS.primary,
+    fontWeight: "600",
+  },
   imageContainer: {
     height: height * 0.3,
     marginBottom: 30,
