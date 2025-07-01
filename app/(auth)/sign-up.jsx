@@ -34,7 +34,7 @@ export default function Signup() {
 
  const handleSignUp = async () => {
   const result = await register(name, username, email, password);
-  console.log("Signup result:", result);
+  
 
   if (!result.success) {
     Alert.alert("Error", result.error);
@@ -42,13 +42,15 @@ export default function Signup() {
   }
 
   const isVerified = result.user?.isVerified;
-  console.log("User isVerified:", isVerified);
+  if (result.user?.isVerified) {
+  router.push("/(tabs)");
+} else {
+  router.push({
+    pathname: "/(auth)/verify-email",
+    params: { email: result.user.email },
+  });
+}
 
-  if (!isVerified) {
-    router.push('/(auth)/verify-email');
-  } else {
-    router.push("/(auth)/index");
-  }
 };
 
 

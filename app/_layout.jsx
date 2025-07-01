@@ -1,13 +1,10 @@
 import { Slot, useRouter, useSegments } from "expo-router";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import SafeScreen from "../components/SafeScreen";
 import { StatusBar } from "expo-status-bar";
 import { useAuthStore } from "../store/authStore";
 import { useEffect, useState } from "react";
+import SafeScreen from "../components/SafeScreen";
 import { SplashScreen } from "expo-router";
-import { COLORS } from "../constants/colors";
-
-SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const router = useRouter();
@@ -18,39 +15,42 @@ export default function RootLayout() {
 
   useEffect(() => {
     const prepare = async () => {
-      await checkAuth(); // must await here
+      await checkAuth();
       setAppReady(true);
     };
-
     prepare();
   }, []);
 
-   useEffect(() => {
+  useEffect(() => {
     if (!appReady) return;
+
+    const inAuthGroup = segments[0] === "(auth)";
+    const secondSegment = segments[1] || "";
+    const allowedAuthRoutes = [
+      "forgot-password",
+      "verify-reset-code",
+      "reset-password",
+      "changepassword",
+      "moodlogs",
+    ];
 
     const isSignedIn = !!user && !!token;
 
-    const group = segments[0];       // (auth), (tabs)
-    const subRoute = segments[1];    // e.g., "verify-email"
-    const isInAuthGroup = group === "(auth)";
-    const isVerificationPage = isInAuthGroup && subRoute === "verify-email";
+    if (!isSignedIn && !inAuthGroup) {
+      router.replace("/(auth)/sign-in");
+    } else if (isSignedIn && inAuthGroup && !allowedAuthRoutes.includes(secondSegment)) {
+      router.replace("/(tabs)");
+    }
 
-    if (!isSignedIn && !isInAuthGroup) {
-  router.replace("/sign-in");
-} else if (isSignedIn && isInAuthGroup && user?.isVerified) {
-  router.replace("/(tabs)");
-}
-
-    SplashScreen.hideAsync(); // <- hide splash when decision is made
+    SplashScreen.hideAsync();
   }, [appReady, user, token, segments]);
 
   return (
-    <SafeAreaProvider style={{ flex: 1}}>
+    <SafeAreaProvider style={{ flex: 1 }}>
       <SafeScreen>
-        {appReady ? <Slot /> : null}
+      <Slot />
       </SafeScreen>
-      <StatusBar style="dark" backgroundColor="transparent" translucent />
+      <StatusBar style="dark" />
     </SafeAreaProvider>
   );
 }
-

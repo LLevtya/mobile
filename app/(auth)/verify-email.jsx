@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   View,
   Text,
@@ -8,62 +7,80 @@ import {
   Alert,
   StyleSheet,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { useAuthStore } from "../../store/authStore";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import { useState } from "react";
 import { COLORS } from "../../constants/colors";
+import { authStyles } from "../../assets/styles/auth.styles";
+import { useAuthStore } from "../../store/authStore";
 
 export default function VerifyEmail() {
+  const router = useRouter();
+  const { email: paramEmail } = useLocalSearchParams();
+  const [email, setEmail] = useState(paramEmail || "");
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
 
-  const router = useRouter();
+  const { logout, user, setUser } = useAuthStore();
 
-  const goToSignup = () => {
-  router.push("/sign-up"); // ✅ this is correct if Step 1 is clean
-};
-  const { user } = useAuthStore();
+  const handleBackToSignUp = async () => {
+    await logout();
+    router.push("/(auth)/sign-up");
+  };
 
   const handleVerify = async () => {
-    if (!user?.email) return Alert.alert("Error", "Missing email");
+    if (!email || !code) {
+      Alert.alert("Missing Info", "Please enter both email and code.");
+      return;
+    }
 
+    setLoading(true);
     try {
-      setLoading(true);
-      const response = await fetch("https://yalm-app-project.onrender.com/api/auth/verify-email", {
+      const res = await fetch("https://yalm-app-project.onrender.com/api/auth/verify-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: user.email, code }),
+        body: JSON.stringify({ email, code }),
       });
 
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Invalid code");
+      const data = await res.json();
 
-      Alert.alert("Success", "Your email has been verified!");
+      if (!res.ok) throw new Error(data.message || "Verification failed");
+
+      Alert.alert("Success", "Email verified successfully!");
+
+      // Update user in store directly (set isVerified to true)
+      if (user) {
+        setUser({ ...user, isVerified: true });
+      }
+
       router.replace("/(tabs)");
-    } catch (error) {
-      Alert.alert("Error", error.message);
+    } catch (err) {
+      Alert.alert("Error", err.message);
     } finally {
       setLoading(false);
     }
   };
 
   const handleResend = async () => {
-    if (!user?.email) return;
+    if (!email) {
+      Alert.alert("Missing Email", "Please enter your email first.");
+      return;
+    }
 
+    setResending(true);
     try {
-      setResending(true);
-      const response = await fetch("https://yalm-app-project.onrender.com/api/auth/resend-verification", {
+      const res = await fetch("https://yalm-app-project.onrender.com/api/auth/resend-verification", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: user.email }),
+        body: JSON.stringify({ email }),
       });
 
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || "Failed to resend code");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Could not resend code");
 
-      Alert.alert("Success", "Verification code sent to your email.");
-    } catch (error) {
-      Alert.alert("Error", error.message);
+      Alert.alert("Code Sent", "Verification code resent to your email.");
+    } catch (err) {
+      Alert.alert("Error", err.message);
     } finally {
       setResending(false);
     }
@@ -71,49 +88,52 @@ export default function VerifyEmail() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Email Verification</Text>
-
-      <Text style={styles.description}>
-        Enter the 6-digit code sent to:
+      <Text style={styles.title}>Verify Your Email</Text>
+      <Text style={styles.subtitle}>
+        Enter the 6-digit code we sent to your email address
       </Text>
-      <Text style={styles.email}>{user?.email}</Text>
 
       <TextInput
-        style={styles.codeInput}
-        placeholder="Enter code"
-        keyboardType="numeric"
+        style={styles.input}
+        placeholder="Email"
+        placeholderTextColor={COLORS.textLight}
+        value={email}
+        onChangeText={setEmail}
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
+
+      <TextInput
+        style={styles.input}
+        placeholder="Verification Code"
+        placeholderTextColor={COLORS.textLight}
         value={code}
         onChangeText={setCode}
-        maxLength={6}
+        keyboardType="number-pad"
       />
 
       <TouchableOpacity
-        style={[styles.button, loading && styles.disabledButton]}
+        style={[styles.button, loading && styles.buttonDisabled]}
         onPress={handleVerify}
         disabled={loading}
       >
         {loading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.buttonText}>Verify</Text>
+          <Text style={styles.buttonText}>Verify Email</Text>
         )}
       </TouchableOpacity>
 
-      <TouchableOpacity
-        style={styles.resendButton}
-        onPress={handleResend}
-        disabled={resending}
-      >
-        <Text style={styles.resendText}>
-          {resending ? "Sending..." : "Resend Code"}
+      <TouchableOpacity style={styles.linkContainer} onPress={handleResend}>
+        <Text style={styles.linkText}>
+          {resending ? "Resending..." : "Resend Verification Code"}
         </Text>
       </TouchableOpacity>
-
-      <TouchableOpacity style={styles.linkContainer} onPress={goToSignup}>
-  <Text style={styles.linkText}>
-    Back to <Text style={styles.link}>Sign Up</Text>
-  </Text>
-</TouchableOpacity>
+      <TouchableOpacity style= {styles.linkContainer} onPress={handleBackToSignUp}>
+        <Text style={authStyles.linkText}>
+          Back to <Text style={authStyles.link}>Sign Up</Text>
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -121,76 +141,65 @@ export default function VerifyEmail() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 28,
     backgroundColor: "#F9FAFB",
+    padding: 24,
     justifyContent: "center",
   },
-  heading: {
-    fontSize: 26,
+  title: {
+    fontSize: 28,
     fontWeight: "700",
-    marginBottom: 14,
-    color: COLORS.primary,
+    color: "#4F46E5",
+    marginBottom: 6,
     textAlign: "center",
   },
-  description: {
-    fontSize: 16,
+  subtitle: {
+    fontSize: 15,
+    color: "#6B7280",
     textAlign: "center",
-    color: "#555",
+    marginBottom: 32,
   },
-  email: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-    textAlign: "center",
-    marginBottom: 24,
-  },
-  codeInput: {
+  input: {
     backgroundColor: "#fff",
-    padding: 14,
-    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: "#E5E7EB",
+    marginBottom: 18,
     fontSize: 16,
-    textAlign: "center",
-    marginBottom: 20,
-    elevation: 2,
+    color: "#111827",
+    shadowColor: "#000",
+    shadowOpacity: 0.03,
+    shadowRadius: 4,
+    elevation: 1,
   },
   button: {
-    backgroundColor: COLORS.primary,
-    padding: 16,
+    backgroundColor: "#4F46E5",
+    paddingVertical: 16,
     borderRadius: 14,
     alignItems: "center",
-    marginBottom: 18,
-    elevation: 3,
+    marginBottom: 16,
+    shadowColor: "#4F46E5",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 4,
   },
-  disabledButton: {
-    opacity: 0.7,
+  buttonDisabled: {
+    opacity: 0.6,
   },
   buttonText: {
     color: "#fff",
-    fontSize: 17,
     fontWeight: "600",
-  },
-  resendButton: {
-    paddingVertical: 10,
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  resendText: {
-    color: COLORS.primary,
-    fontWeight: "600",
-    fontSize: 15,
+    fontSize: 16,
   },
   linkContainer: {
     alignItems: "center",
     marginTop: 10,
   },
   linkText: {
-    color: "#444",
-    fontSize: 14,
-  },
-  link: {
-    color: COLORS.primary,
-    fontWeight: "600",
+    fontSize: 15,
+    color: "#4F46E5",
+    fontWeight: "500",
   },
 });

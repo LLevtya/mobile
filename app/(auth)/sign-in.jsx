@@ -30,19 +30,20 @@ export default function SignIn() {
   const handleSignIn = async () => {
     const result = await login(email, password);
 
-
-    if (result.success) {
-    router.replace("/(tabs)");
-  } else if (result.error === "UNVERIFIED") {
-    // 🚀 Redirect to verification screen with email passed as param
+if (!result.success) {
+  if (result.error === "UNVERIFIED") {
+    // Redirect to verify email screen with email passed
     router.push({
-      pathname: "/verify-email",
+      pathname: "/(auth)/verify-email",
       params: { email: result.email },
     });
-  } else {
-    Alert.alert("Login Failed", result.error);
+    return;
   }
-};
+
+  Alert.alert("Login Failed", result.error);
+  return;
+}
+
 
   useEffect(() => {
     if (!isCheckingAuth && user && token) {
@@ -57,6 +58,10 @@ export default function SignIn() {
       </View>
     );
   }
+}
+const goToForgotPassword = () => {
+    router.push("/(auth)/forgot-password");
+  };
 
 
   return (
@@ -110,6 +115,13 @@ export default function SignIn() {
                 />
               </TouchableOpacity>
             </View>
+
+            {/* Forgot Password button */}
+      <TouchableOpacity onPress={goToForgotPassword} style={{ marginTop: 12, alignSelf: "flex-end" }}>
+        <Text style={{ color: "#4F46E5", fontWeight: "600", fontSize: 14 }}>
+          Forgot Password?
+        </Text>
+      </TouchableOpacity>
 
             <TouchableOpacity
               style={[authStyles.authButton, isLoading && authStyles.buttonDisabled]}
